@@ -120,20 +120,6 @@ $template = new InvoiceTemplate();
 $content = $template->generate($invoice, $templateContent);
 ```
 
-## Artisan Commands
-
-Generate new template classes:
-
-```bash
-php artisan placeholdify:make-template InvoiceTemplate --type=invoice
-```
-
-Demo the package functionality:
-
-```bash
-php artisan placeholdify:demo
-```
-
 ## Documentation
 
 For comprehensive documentation, examples, and advanced usage:
