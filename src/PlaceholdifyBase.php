@@ -2,7 +2,7 @@
 
 namespace CleaniqueCoders\Placeholdify;
 
-abstract class BaseLetter
+abstract class PlaceholdifyBase
 {
     protected PlaceholderHandler $handler;
 

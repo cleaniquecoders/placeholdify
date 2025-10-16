@@ -2,13 +2,13 @@
 
 namespace App\Services\Letters;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
  * Student Academic Warning Letter Generator
  */
-class AcademicWarningLetter extends BaseLetter
+class AcademicWarningLetter extends PlaceholdifyBase
 {
     protected function configure(): void
     {

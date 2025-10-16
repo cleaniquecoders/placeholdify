@@ -2,13 +2,13 @@
 
 namespace App\Services\Letters;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
  * Medical Leave Approval Letter Generator
  */
-class MedicalLeaveLetter extends BaseLetter
+class MedicalLeaveLetter extends PlaceholdifyBase
 {
     protected function configure(): void
     {

@@ -90,7 +90,7 @@ class InvoiceContext
 
 ### Source Files Location: `src/`
 - `PlaceholderHandler.php` - Main handler class
-- `BaseLetter.php` - Base class for letter generation
+- `PlaceholdifyBase.php` - Base class for template generation
 - `Contracts/` - Interfaces
 - `Formatters/` - Custom formatter classes
 - `Contexts/` - Context mapping classes
@@ -130,7 +130,7 @@ return [
 
 ### Classes:
 - `*Context` - Context mapping classes
-- `*Letter` - Letter generation classes
+- `*Template` - Template generation classes
 - `*Formatter` - Custom formatter classes
 
 ## Error Handling
@@ -176,9 +176,9 @@ public function test_date_formatter()
 
 ## Common Use Cases
 
-### Letter Generation:
+### Template Generation:
 ```php
-class PermitLetter extends BaseLetter
+class PermitTemplate extends PlaceholdifyBase
 {
     public function build($application): PlaceholderHandler
     {

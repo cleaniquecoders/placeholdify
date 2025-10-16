@@ -214,16 +214,16 @@ class InvoiceContext
 $content = InvoiceContext::build($invoice)->replace($template);
 ```
 
-### Creating Letter Classes
+### Creating Template Classes
 
 Extend the base class for different document types:
 
 ```php
-namespace App\Services\Letters;
+namespace App\Services\Templates;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
-class PermitLetter extends BaseLetter
+class PermitTemplate extends PlaceholdifyBase
 {
     protected function configure(): void
     {
@@ -247,8 +247,8 @@ class PermitLetter extends BaseLetter
 }
 
 // Usage
-$letter = new PermitLetter();
-$content = $letter->generate($formAppliance, $template->content);
+$template = new PermitTemplate();
+$content = $template->generate($formAppliance, $templateContent);
 ```
 
 ### Registering Global Contexts

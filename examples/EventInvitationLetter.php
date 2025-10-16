@@ -2,13 +2,13 @@
 
 namespace App\Services\Letters;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
  * Event Invitation Letter Generator
  */
-class EventInvitationLetter extends BaseLetter
+class EventInvitationLetter extends PlaceholdifyBase
 {
     protected function configure(): void
     {

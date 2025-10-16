@@ -2,13 +2,13 @@
 
 namespace App\Services\Letters;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
  * Property Rental Agreement Letter Generator
  */
-class RentalAgreementLetter extends BaseLetter
+class RentalAgreementLetter extends PlaceholdifyBase
 {
     protected function configure(): void
     {

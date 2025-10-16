@@ -2,13 +2,13 @@
 
 namespace App\Services\Letters;
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
  * Employment Offer Letter Generator
  */
-class OfferLetter extends BaseLetter
+class OfferLetter extends PlaceholdifyBase
 {
     protected function configure(): void
     {

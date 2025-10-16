@@ -1,6 +1,6 @@
-# BaseLetter Examples Documentation
+# PlaceholdifyBase Examples Documentation
 
-This directory contains comprehensive examples of how to use the `BaseLetter` class to create various types of document generators.
+This directory contains comprehensive examples of how to use the `PlaceholdifyBase` class to create various types of document generators.
 
 ## Available Examples
 
@@ -212,7 +212,7 @@ public function generateLetter($type, $id)
 ## Best Practices Shown
 
 1. **Separation of Concerns**: Each letter type has its own class
-2. **Consistent Interface**: All letters extend BaseLetter
+2. **Consistent Interface**: All letters extend PlaceholdifyBase
 3. **Configuration in Constructor**: Setup formatters and contexts early
 4. **Business Logic Encapsulation**: Complex calculations in private methods
 5. **Flexible Data Handling**: Support for various data structures

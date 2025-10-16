@@ -1,9 +1,9 @@
 <?php
 
-use CleaniqueCoders\Placeholdify\BaseLetter;
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
-class TestLetter extends BaseLetter
+class TestTemplate extends PlaceholdifyBase
 {
     protected function configure(): void
     {
@@ -20,7 +20,7 @@ class TestLetter extends BaseLetter
 }
 
 it('can create and use a custom letter class', function () {
-    $letter = new TestLetter;
+    $letter = new TestTemplate;
     $data = [
         'name' => 'John Doe',
         'type' => 'Permit',
@@ -33,7 +33,7 @@ it('can create and use a custom letter class', function () {
 });
 
 it('can use letter class with modifiers', function () {
-    $letter = new TestLetter;
+    $letter = new TestTemplate;
     $data = [
         'name' => 'jane doe',
         'type' => 'certificate',
@@ -46,7 +46,7 @@ it('can use letter class with modifiers', function () {
 });
 
 it('can handle missing data with fallbacks in letter class', function () {
-    $letter = new TestLetter;
+    $letter = new TestTemplate;
     $data = []; // Empty data
 
     $template = 'Letter for: {name}, Type: {type}, Date: {date}';
@@ -56,7 +56,7 @@ it('can handle missing data with fallbacks in letter class', function () {
 });
 
 it('can access the handler from letter class', function () {
-    $letter = new TestLetter;
+    $letter = new TestTemplate;
     $handler = $letter->getHandler();
 
     expect($handler)->toBeInstanceOf(PlaceholderHandler::class);
