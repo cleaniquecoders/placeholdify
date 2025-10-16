@@ -1,0 +1,53 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
+
+/**
+ * {{ class }} Letter Template
+ *
+ * Template for generating formal letters with placeholders.
+ */
+class {{ class }} extends PlaceholdifyBase
+{
+    protected function configure(): void
+    {
+        $this->handler->setFallback('N/A');
+
+        // Register recipient context
+        $this->handler->registerContext('recipient', [
+            'name' => 'full_name',
+            'title' => 'title',
+            'company' => 'company.name',
+            'address' => 'address',
+            'email' => 'email',
+        ]);
+
+        // Register sender context
+        $this->handler->registerContext('sender', [
+            'name' => 'name',
+            'position' => 'position',
+            'company' => 'company',
+            'contact' => 'contact_info',
+        ]);
+    }
+
+    public function build(mixed $data): PlaceholderHandler
+    {
+        return $this->handler
+            ->useContext('recipient', $data->recipient, 'recipient')
+            ->useContext('sender', $data->sender, 'sender')
+            ->add('subject', $data->subject ?? 'Letter Subject')
+            ->add('reference_no', $this->generateReferenceNo($data))
+            ->addDate('letter_date', now(), 'F j, Y')
+            ->add('body_content', $data->body ?? '')
+            ->add('closing', $data->closing ?? 'Sincerely');
+    }
+
+    protected function generateReferenceNo(mixed $data): string
+    {
+        return 'REF-' . now()->format('Y') . '-' . str_pad($data->id ?? rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+    }
+}

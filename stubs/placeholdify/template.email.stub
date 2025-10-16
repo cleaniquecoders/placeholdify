@@ -1,0 +1,50 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
+
+/**
+ * {{ class }} Email Template
+ *
+ * Template for generating email content with placeholders.
+ */
+class {{ class }} extends PlaceholdifyBase
+{
+    protected function configure(): void
+    {
+        $this->handler->setFallback('');
+
+        // Register user context
+        $this->handler->registerContext('user', [
+            'name' => 'name',
+            'email' => 'email',
+            'first_name' => 'first_name',
+            'last_name' => 'last_name',
+        ]);
+
+        // Register company context
+        $this->handler->registerContext('company', [
+            'name' => 'name',
+            'website' => 'website',
+            'support_email' => 'support_email',
+            'phone' => 'phone',
+        ]);
+    }
+
+    public function build(mixed $data): PlaceholderHandler
+    {
+        return $this->handler
+            ->useContext('user', $data->user, 'user')
+            ->useContext('company', $data->company ?? config('app'), 'company')
+            ->add('subject', $data->subject ?? 'Email Subject')
+            ->add('preheader', $data->preheader ?? '')
+            ->add('greeting', $data->greeting ?? 'Hello')
+            ->add('content', $data->content ?? '')
+            ->add('call_to_action', $data->call_to_action ?? '')
+            ->add('action_url', $data->action_url ?? '#')
+            ->add('footer_text', $data->footer_text ?? 'Thank you for using our service')
+            ->addDate('sent_date', now(), 'F j, Y');
+    }
+}

@@ -1,0 +1,52 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
+
+/**
+ * {{ class }} Invoice Template
+ *
+ * Template for generating invoices with financial placeholders.
+ */
+class {{ class }} extends PlaceholdifyBase
+{
+    protected function configure(): void
+    {
+        $this->handler->setFallback('0.00');
+
+        // Register customer context
+        $this->handler->registerContext('customer', [
+            'name' => 'name',
+            'email' => 'email',
+            'phone' => 'phone',
+            'address' => 'billing_address',
+            'tax_id' => 'tax_identification',
+        ]);
+
+        // Register currency formatter
+        $this->handler->registerFormatter('currency', function ($value, $currency = 'RM') {
+            return $currency . ' ' . number_format($value, 2);
+        });
+    }
+
+    public function build(mixed $data): PlaceholderHandler
+    {
+        return $this->handler
+            ->add('invoice_no', $data->invoice_number ?? $this->generateInvoiceNumber())
+            ->useContext('customer', $data->customer, 'customer')
+            ->addDate('invoice_date', $data->created_at ?? now(), 'd/m/Y')
+            ->addDate('due_date', $data->due_date ?? now()->addDays(30), 'd/m/Y')
+            ->addFormatted('subtotal', $data->subtotal ?? 0, 'currency')
+            ->addFormatted('tax_amount', $data->tax_amount ?? 0, 'currency')
+            ->addFormatted('total_amount', $data->total_amount ?? 0, 'currency')
+            ->add('payment_terms', $data->payment_terms ?? 'Net 30')
+            ->add('notes', $data->notes ?? '');
+    }
+
+    protected function generateInvoiceNumber(): string
+    {
+        return 'INV-' . now()->format('Y') . '-' . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+    }
+}

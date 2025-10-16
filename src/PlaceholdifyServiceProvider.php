@@ -30,5 +30,12 @@ class PlaceholdifyServiceProvider extends PackageServiceProvider
 
         // Register facade alias
         $this->app->alias(PlaceholderHandler::class, 'placeholdify');
+
+        // Publish stubs
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../stubs/placeholdify' => base_path('stubs/placeholdify'),
+            ], 'placeholdify-stubs');
+        }
     }
 }
