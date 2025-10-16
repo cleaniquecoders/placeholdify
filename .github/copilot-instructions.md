@@ -243,6 +243,24 @@ $content = $handler
 7. **Use lazy evaluation** for expensive operations
 8. **Test all placeholder scenarios** thoroughly
 
+## Testing
+
+### Running Tests
+Always use the composer script to run tests:
+
+```bash
+composer test
+```
+
+**Important Notes:**
+- Never use `--verbose` option when running tests
+- Use `composer test` instead of direct `vendor/bin/pest` commands
+- Tests run without timeout issues on macOS
+- The test suite uses Pest testing framework
+
+### Writing Tests
+Follow the existing test patterns when adding new tests. Use descriptive test names and ensure comprehensive coverage of all placeholder scenarios.
+
 ## Migration from Other Systems
 
 When replacing existing template systems:
