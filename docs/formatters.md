@@ -270,3 +270,7 @@ PlaceholderHandler::registerGlobalFormatter('address', [
 // Usage
 $handler->addFormatted('address', $user->address, 'address', 'short');
 ```
+
+## More examples
+
+See [Formatter Examples](./formatters-examples.md)
