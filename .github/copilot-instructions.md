@@ -4,6 +4,24 @@
 
 Placeholdify is a powerful Laravel package for dynamic template placeholder replacement. It provides a fluent API for managing placeholders with advanced features like context mapping, custom formatters, lazy evaluation, and template modifiers.
 
+## Documentation
+
+All comprehensive documentation is stored in the `docs/` directory with kebab-case filenames:
+
+- `docs/index.md` - Documentation index and navigation
+- `docs/installation.md` - Installation and setup instructions
+- `docs/basic-usage.md` - Basic usage patterns and examples
+- `docs/formatters.md` - Built-in and custom formatters documentation
+- `docs/context-system.md` - Context mapping and reusable configurations
+- `docs/advanced-features.md` - Lazy evaluation, conditionals, and modifiers
+- `docs/template-classes.md` - Creating dedicated template classes
+- `docs/artisan-commands.md` - Command-line tools and template generation
+- `docs/configuration.md` - Configuration options and customization
+- `docs/real-world-examples.md` - Complete real-world implementation examples
+- `docs/api-reference.md` - Complete API documentation
+
+When referring to documentation, always use the kebab-case filename convention and reference files in the `docs/` directory.
+
 ## Core Concepts
 
 ### 1. PlaceholderHandler

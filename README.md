@@ -8,7 +8,7 @@
 
 A powerful and extendable placeholder replacement engine for Laravel that makes working with dynamic templates a breeze. Perfect for generating letters, invoices, certificates, emails, and any document that requires dynamic content injection.
 
-## Why Placeholdify?
+## Features
 
 - 🎯 **Context-Aware** - Register reusable context mappings for your models
 - 🎨 **Custom Formatters** - Built-in formatters for dates, currency, numbers, and easy custom formatter registration
@@ -20,8 +20,6 @@ A powerful and extendable placeholder replacement engine for Laravel that makes 
 - 📦 **Zero Dependencies** - Works with plain Laravel, no extra packages required
 
 ## Installation
-
-You can install the package via composer:
 
 ```bash
 composer require cleaniquecoders/placeholdify
@@ -35,7 +33,7 @@ php artisan vendor:publish --tag=placeholdify-config
 
 ## Quick Start
 
-### Basic Usage
+### Simple Replacement
 
 ```php
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
@@ -58,62 +56,32 @@ $handler = new PlaceholderHandler();
 
 $content = $handler
     ->add('name', $user->name)
-    ->addDate('today', now())
-    ->addNullable('phone', $user->phone, $user->mobile)
+    ->addDate('today', now(), 'F j, Y')
+    ->addFormatted('total', 1234.56, 'currency', 'MYR')
     ->replace($template);
 ```
 
-## Features
-
-### 1. Date Formatting
-
-Automatically format dates using Carbon:
+### Using Contexts
 
 ```php
-$handler->addDate('invoice_date', $invoice->created_at, 'd/m/Y');
-$handler->addDate('due_date', $invoice->due_date, 'F j, Y');
+// Register context once
+$handler->registerContext('user', [
+    'name' => 'name',
+    'email' => 'email',
+    'role' => fn($user) => $user->roles->pluck('name')->join(', '),
+]);
+
+// Use anywhere
+$content = $handler
+    ->useContext('user', $user, 'customer')
+    ->replace('Hello {customer.name}, your role is {customer.role}');
 ```
 
-### 2. Null Coalescing
-
-Provide fallback values in a clean chain:
-
-```php
-$handler->addNullable('contact', $user->email, $user->phone, 'N/A');
-```
-
-### 3. Custom Formatters
-
-Register and use custom formatters:
-
-```php
-// Register formatter
-$handler->registerFormatter('currency', function($value, $currency = 'USD') {
-    return $currency . ' ' . number_format($value, 2);
-});
-
-// Use formatter
-$handler->addFormatted('total', 1234.56, 'currency', 'MYR');
-// Result: {total} becomes "MYR 1,234.56"
-```
-
-**Built-in Formatters:**
-
-- `date` - Format dates
-- `currency` - Format currency
-- `number` - Format numbers
-- `upper` - Convert to uppercase
-- `lower` - Convert to lowercase
-- `title` - Convert to title case
-
-### 4. Template Modifiers
-
-Use inline modifiers directly in your templates:
+### Template Modifiers
 
 ```php
 $template = "Student: {name|upper}, Amount: {fee|currency:MYR}, Date: {created_at|date:d/m/Y}";
 
-$handler = new PlaceholderHandler();
 $content = $handler
     ->add('name', 'john doe')
     ->add('fee', 150.50)
@@ -123,275 +91,63 @@ $content = $handler
 // Output: "Student: JOHN DOE, Amount: MYR 150.50, Date: 16/10/2025"
 ```
 
-### 5. Context Registration
+## Template Classes
 
-Register reusable context mappings for your models:
-
-```php
-// Register once (e.g., in a service provider)
-$handler->registerContext('student', [
-    'name' => 'student_name',
-    'email' => 'email',
-    'matric' => 'matric_number',
-    'program' => 'program.name', // Nested relationships
-]);
-
-// Use anywhere
-$handler->useContext('student', $student, 'student');
-
-// Access as: {student.name}, {student.email}, {student.matric}
-```
-
-### 6. Lazy Evaluation
-
-Defer expensive operations:
+Create dedicated template classes for complex scenarios:
 
 ```php
-$handler->addLazy('total_items', function() use ($order) {
-    return $order->items()->sum('amount');
-});
-```
-
-### 7. Conditional Placeholders
-
-Add placeholders based on conditions:
-
-```php
-$handler->addIf(
-    $student->gpa >= 3.5,
-    'honors',
-    'with Honors',
-    ''
-);
-```
-
-### 8. Context from Objects
-
-Automatically extract data from objects:
-
-```php
-$handler->addFromContext('student', $student, [
-    'name' => 'student_name',
-    'email' => 'email',
-    'formatted_name' => ['property' => 'student_name', 'formatter' => 'upper'],
-    'full_details' => fn($s) => $s->name . ' (' . $s->matric . ')',
-]);
-```
-
-## Advanced Usage
-
-### Creating Dedicated Context Classes
-
-For complex scenarios, create dedicated context classes:
-
-```php
-namespace App\Services\Placeholders;
-
-use CleaniqueCoders\Placeholdify\PlaceholderHandler;
-
-class InvoiceContext
-{
-    public static function build($invoice): PlaceholderHandler
-    {
-        $handler = new PlaceholderHandler();
-
-        return $handler
-            ->add('invoice_no', $invoice->invoice_number)
-            ->addFormatted('total', $invoice->total, 'currency', 'MYR')
-            ->addFormatted('subtotal', $invoice->subtotal, 'currency', 'MYR')
-            ->addDate('invoice_date', $invoice->created_at, 'd/m/Y')
-            ->addDate('due_date', $invoice->due_date, 'd/m/Y')
-            ->useContext('customer', $invoice->customer, 'customer')
-            ->addLazy('items_list', function() use ($invoice) {
-                return $invoice->items
-                    ->map(fn($i) => $i->description . ' - RM' . number_format($i->amount, 2))
-                    ->join("\n");
-            });
-    }
-}
-
-// Usage
-$content = InvoiceContext::build($invoice)->replace($template);
-```
-
-### Creating Template Classes
-
-Extend the base class for different document types:
-
-```php
-namespace App\Services\Templates;
-
 use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
-class PermitTemplate extends PlaceholdifyBase
+class InvoiceTemplate extends PlaceholdifyBase
 {
     protected function configure(): void
     {
         $this->handler->setFallback('N/A');
     }
 
-    public function build($formAppliance): PlaceholderHandler
+    public function build($invoice): PlaceholderHandler
     {
         return $this->handler
-            ->add('permitNo', $this->generatePermitNo($formAppliance))
-            ->addDate('issued_at', now())
-            ->addDate('expires_at', now()->addYear())
-            ->useContext('student', $formAppliance->student, 'student')
-            ->useContext('appliance', $formAppliance, 'appliance');
-    }
-
-    protected function generatePermitNo($formAppliance): string
-    {
-        return 'PERMIT-' . now()->year . '-' . $formAppliance->id;
+            ->add('invoice_no', $invoice->invoice_number)
+            ->addFormatted('total', $invoice->total, 'currency', 'MYR')
+            ->addDate('invoice_date', $invoice->created_at, 'd/m/Y')
+            ->useContext('customer', $invoice->customer, 'customer');
     }
 }
 
 // Usage
-$template = new PermitTemplate();
-$content = $template->generate($formAppliance, $templateContent);
+$template = new InvoiceTemplate();
+$content = $template->generate($invoice, $templateContent);
 ```
 
-### Registering Global Contexts
+## Artisan Commands
 
-Register common contexts in your service provider:
-
-```php
-namespace App\Providers;
-
-use Illuminate\Support\ServiceProvider;
-use CleaniqueCoders\Placeholdify\PlaceholderHandler;
-
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot()
-    {
-        PlaceholderHandler::registerGlobalContext('user', [
-            'name' => 'name',
-            'email' => 'email',
-            'role' => fn($user) => $user->roles->pluck('name')->join(', '),
-        ]);
-
-        PlaceholderHandler::registerGlobalContext('company', [
-            'name' => 'name',
-            'address' => 'address',
-            'phone' => 'phone',
-            'email' => 'contact_email',
-        ]);
-    }
-}
-```
-
-## Real-World Example
-
-Generate a student permit letter:
-
-```php
-use CleaniqueCoders\Placeholdify\PlaceholderHandler;
-
-class PermitController extends Controller
-{
-    public function generate($id)
-    {
-        $application = ApplianceApplication::with(['student', 'appliance'])->findOrFail($id);
-        $template = LetterTemplate::where('type', 'permit')->first();
-
-        $handler = new PlaceholderHandler();
-        $content = $handler
-            ->add('permitNo', 'MIMET/2024/C01/KTL003/' . $application->id)
-            ->addDate('created_at', $application->created_at, 'd M Y')
-            ->addDate('expires_at', now()->addYear(), 'd M Y')
-            ->addNullable('studentName', $application->student->student_name)
-            ->addNullable('matricNo', $application->student->matric_number)
-            ->addNullable('applianceType', $application->appliance->type)
-            ->addNullable('applianceName', $application->appliance->name)
-            ->addNullable('serialNo', $application->serial_number)
-            ->addNullable('approvedBy', $application->approvedBy->name)
-            ->replace($template->content);
-
-        return view('letters.preview', compact('content'));
-    }
-}
-```
-
-**Template Example:**
-
-```text
-APPLIANCE PERMIT
-
-Permit No: {permitNo}
-Issue Date: {created_at}
-Expiry Date: {expires_at}
-
-This is to certify that {studentName} (Matric: {matricNo}) is permitted to use:
-
-Appliance Type: {applianceType}
-Appliance Name: {applianceName}
-Serial Number: {serialNo}
-
-Approved by: {approvedBy}
-```
-
-## Configuration
-
-Customize default behavior in `config/placeholdify.php`:
-
-```php
-return [
-    'delimiter' => [
-        'start' => '{',
-        'end' => '}',
-    ],
-    'fallback' => 'N/A',
-    'formatters' => [
-        // Register global formatters
-    ],
-    'contexts' => [
-        // Register global contexts
-    ],
-];
-```
-
-## API Reference
-
-### PlaceholderHandler Methods
-
-| Method | Description |
-|--------|-------------|
-| `add($key, $value, $fallback = null)` | Add a single placeholder |
-| `addMany(array $placeholders)` | Add multiple placeholders |
-| `addDate($key, $date, $format, $fallback = null)` | Add formatted date |
-| `addNullable($key, ...$values)` | Add with null coalescing |
-| `addFormatted($key, $value, $formatter, ...$args)` | Add with custom formatter |
-| `addLazy($key, Closure $callback, $fallback = null)` | Add lazy-evaluated placeholder |
-| `addIf($condition, $key, $value, $elseValue = null)` | Add conditional placeholder |
-| `addFromContext($prefix, $object, array $mapping)` | Add from object context |
-| `useContext($name, $object, $prefix = '')` | Use registered context |
-| `registerContext($name, array $mapping)` | Register reusable context |
-| `registerFormatter($name, Closure $formatter)` | Register custom formatter |
-| `setDelimiter($start, $end = null)` | Set custom delimiters |
-| `setFallback($value)` | Set default fallback value |
-| `replace($content)` | Replace placeholders in content |
-| `replaceWithModifiers($content)` | Replace with modifier support |
-| `all()` | Get all placeholders |
-| `clear()` | Clear all placeholders |
-
-### Static Methods
-
-| Method | Description |
-|--------|-------------|
-| `PlaceholderHandler::process($content, $placeholders, $delimiter = '{}')` | Quick one-liner replacement |
-
-## Artisan Command
-
-Placeholdify includes an Artisan command for testing and demonstration:
+Generate new template classes:
 
 ```bash
-# Show demo with examples
-php artisan placeholdify:demo
-
-# Process custom template
-php artisan placeholdify:demo --template="Hello {name}!" --data='{"name":"World"}'
+php artisan placeholdify:make-template InvoiceTemplate --type=invoice
 ```
+
+Demo the package functionality:
+
+```bash
+php artisan placeholdify:demo
+```
+
+## Documentation
+
+For comprehensive documentation, examples, and advanced usage:
+
+- 📖 **[Complete Documentation](docs/index.md)** - Full documentation index
+- 🚀 **[Basic Usage](docs/basic-usage.md)** - Learn the fundamentals
+- 🎨 **[Formatters](docs/formatters.md)** - Built-in and custom formatters
+- 🔄 **[Context System](docs/context-system.md)** - Reusable model mappings
+- ⚡ **[Advanced Features](docs/advanced-features.md)** - Lazy evaluation, conditionals, and more
+- 🏗️ **[Template Classes](docs/template-classes.md)** - Organize your template logic
+- ⚙️ **[Configuration](docs/configuration.md)** - Customize default behavior
+- 🛠️ **[Artisan Commands](docs/artisan-commands.md)** - Command-line tools
+- 🌍 **[Real World Examples](docs/real-world-examples.md)** - Complete implementation examples
+- 📚 **[API Reference](docs/api-reference.md)** - Complete method documentation
 
 ## Testing
 
