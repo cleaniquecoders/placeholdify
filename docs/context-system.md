@@ -77,7 +77,7 @@ Register in your configuration file:
 
 ```php
 // config/placeholdify.php
-'context_classes' => [
+'contexts' => [
     \CleaniqueCoders\Placeholdify\Contexts\UserContext::class,
     \App\Contexts\OrderContext::class,
     \App\Contexts\CustomerContext::class,

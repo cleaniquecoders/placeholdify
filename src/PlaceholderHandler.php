@@ -61,8 +61,8 @@ class PlaceholderHandler
                 }
 
                 // Register context classes from config only
-                if (isset($config['context_classes']) && is_array($config['context_classes'])) {
-                    foreach ($config['context_classes'] as $contextClass) {
+                if (isset($config['contexts']) && is_array($config['contexts'])) {
+                    foreach ($config['contexts'] as $contextClass) {
                         if (is_string($contextClass) && class_exists($contextClass)) {
                             $contextInstance = new $contextClass;
                             if ($contextInstance instanceof ContextInterface) {

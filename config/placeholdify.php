@@ -82,7 +82,7 @@ return [
     | These provide reusable mappings for extracting data from objects.
     |
     */
-    'context_classes' => [
+    'contexts' => [
         \CleaniqueCoders\Placeholdify\Contexts\UserContext::class,
 
         // Add your custom context classes here:
