@@ -5,8 +5,10 @@ This directory contains comprehensive examples of how to use the `BaseLetter` cl
 ## Available Examples
 
 ### 1. OfferLetter.php
-**Purpose**: Generate employment offer letters  
-**Features**: 
+
+**Purpose**: Generate employment offer letters
+**Features**:
+
 - Employee and position context mapping
 - Salary formatting with currency
 - Benefits listing
@@ -14,14 +16,17 @@ This directory contains comprehensive examples of how to use the `BaseLetter` cl
 - Auto-generated offer reference numbers
 
 **Usage**:
+
 ```php
 $letter = new OfferLetter();
 $content = $letter->generate($offerData, $template);
 ```
 
 ### 2. AcademicWarningLetter.php
-**Purpose**: Generate academic warning letters for students  
+
+**Purpose**: Generate academic warning letters for students
 **Features**:
+
 - Student academic context
 - GPA formatting
 - Dynamic warning levels based on CGPA
@@ -30,14 +35,17 @@ $content = $letter->generate($offerData, $template);
 - Improvement plan generation
 
 **Usage**:
+
 ```php
 $letter = new AcademicWarningLetter();
 $content = $letter->generate($academicRecord, $template);
 ```
 
 ### 3. RentalAgreementLetter.php
-**Purpose**: Generate rental/lease agreements  
+
+**Purpose**: Generate rental/lease agreements
 **Features**:
+
 - Custom delimiters `[brackets]` instead of `{braces}`
 - Tenant, landlord, and property contexts
 - Currency formatting for rent and deposits
@@ -46,14 +54,17 @@ $content = $letter->generate($academicRecord, $template);
 - Conditional clauses for pets and smoking
 
 **Usage**:
+
 ```php
 $letter = new RentalAgreementLetter();
 $content = $letter->generate($rentalData, $template);
 ```
 
 ### 4. MedicalLeaveLetter.php
-**Purpose**: Generate medical leave approval letters  
+
+**Purpose**: Generate medical leave approval letters
 **Features**:
+
 - Employee and medical contexts
 - Dynamic leave duration calculation
 - Leave type determination
@@ -62,14 +73,17 @@ $content = $letter->generate($rentalData, $template);
 - Benefits continuation information
 
 **Usage**:
+
 ```php
 $letter = new MedicalLeaveLetter();
 $content = $letter->generate($leaveRequest, $template);
 ```
 
 ### 5. EventInvitationLetter.php
-**Purpose**: Generate event invitation letters  
+
+**Purpose**: Generate event invitation letters
 **Features**:
+
 - Guest and event contexts
 - Time formatting
 - Special instructions formatting
@@ -79,6 +93,7 @@ $content = $letter->generate($leaveRequest, $template);
 - RSVP handling
 
 **Usage**:
+
 ```php
 $letter = new EventInvitationLetter();
 $content = $letter->generate($invitationData, $template);
@@ -87,7 +102,9 @@ $content = $letter->generate($invitationData, $template);
 ## Key Features Demonstrated
 
 ### Context Registration
+
 Each letter class shows how to register reusable contexts:
+
 ```php
 $this->handler->registerContext('student', [
     'name' => 'student_name',
@@ -97,7 +114,9 @@ $this->handler->registerContext('student', [
 ```
 
 ### Custom Formatters
+
 Examples of registering and using custom formatters:
+
 ```php
 $this->handler->registerFormatter('currency', function($value, $currency = 'USD') {
     return $currency . ' ' . number_format($value, 2);
@@ -105,7 +124,9 @@ $this->handler->registerFormatter('currency', function($value, $currency = 'USD'
 ```
 
 ### Conditional Text
+
 Adding text based on conditions:
+
 ```php
 $this->handler->addIf(
     $student->gpa >= 3.5,
@@ -116,7 +137,9 @@ $this->handler->addIf(
 ```
 
 ### Lazy Evaluation
+
 Deferring expensive operations:
+
 ```php
 $this->handler->addLazy('expensive_calculation', function() use ($data) {
     return $this->performExpensiveCalculation($data);
@@ -124,7 +147,9 @@ $this->handler->addLazy('expensive_calculation', function() use ($data) {
 ```
 
 ### Custom Delimiters
+
 Using different placeholder delimiters:
+
 ```php
 $this->handler->setDelimiter('[', ']'); // Use [placeholder] instead of {placeholder}
 ```
@@ -132,11 +157,13 @@ $this->handler->setDelimiter('[', ']'); // Use [placeholder] instead of {placeho
 ## Running the Examples
 
 ### Basic Example
+
 ```bash
 php examples/comprehensive_letter_examples.php
 ```
 
 ### Individual Testing
+
 ```php
 require_once 'examples/OfferLetter.php';
 
@@ -164,6 +191,7 @@ The `LetterGenerationController.php` shows how to integrate these letter classes
 - Workflow integration
 
 ### Controller Usage Example
+
 ```php
 public function generateLetter($type, $id)
 {
@@ -173,10 +201,10 @@ public function generateLetter($type, $id)
         'rental' => new RentalAgreementLetter(),
         // ... other types
     };
-    
+
     $data = $this->getData($type, $id);
     $template = LetterTemplate::where('type', $type)->first();
-    
+
     return $letter->generate($data, $template->content);
 }
 ```
