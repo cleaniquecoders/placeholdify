@@ -1,8 +1,34 @@
 # Formatters
 
-Placeholdify provides a powerful formatter system for transforming placeholder values before replacement.
+Placeholdify provides a powerful formatter system for transforming placeholder values before replacement. All formatters must implement the `FormatterInterface` contract for consistency and type safety.
 
-## Using Built-in Formatters
+## Configuration
+
+### Built-in Formatters Configuration
+
+You can control which built-in formatters are automatically registered in your `config/placeholdify.php`:
+
+```php
+'built_in_formatters' => [
+    'date' => true,      // Enable date formatter
+    'currency' => true,  // Enable currency formatter
+    'number' => true,    // Enable number formatter
+    'upper' => false,    // Disable upper formatter
+    'lower' => true,     // Enable lower formatter
+    'title' => true,     // Enable title formatter
+],
+```
+
+### Custom Formatter Classes
+
+Register custom formatter classes in the config:
+
+```php
+'formatters' => [
+    'slug' => \App\Formatters\SlugFormatter::class,
+    'phone' => \App\Formatters\PhoneFormatter::class,
+],
+```## Using Built-in Formatters
 
 ### Basic Usage
 
@@ -26,7 +52,7 @@ $handler->addFormatted('published_at', $post->created_at, 'date', 'F j, Y');
 $handler->addFormatted('price', 99.99, 'currency', 'USD');
 // Output: "USD 99.99"
 
-$handler->addFormatted('total', 1234.56, 'currency', 'MYR');
+$handler->addFormatted('total', 1234.56, 'currency', 'MYR', 2);
 // Output: "MYR 1,234.56"
 ```
 
@@ -53,42 +79,97 @@ $handler->addFormatted('title', 'hello world', 'title');
 // Output: "Hello World"
 ```
 
-## Custom Formatters
+## Creating Custom Formatters
 
-### Registering Custom Formatters
+### Formatter Classes (Recommended)
+
+Create a formatter class that implements `FormatterInterface`:
 
 ```php
-// Simple formatter
-$handler->registerFormatter('reverse', function($value) {
-    return strrev($value);
-});
+<?php
 
-// Formatter with parameters
-$handler->registerFormatter('truncate', function($value, $length = 50, $suffix = '...') {
-    return strlen($value) > $length
-        ? substr($value, 0, $length) . $suffix
-        : $value;
-});
+namespace App\Formatters;
 
-// Advanced formatter
-$handler->registerFormatter('mask_email', function($value) {
-    $parts = explode('@', $value);
-    if (count($parts) !== 2) return $value;
+use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
 
-    $username = $parts[0];
-    $domain = $parts[1];
+class SlugFormatter implements FormatterInterface
+{
+    public function format(mixed $value, mixed ...$args): string
+    {
+        $separator = $args[0] ?? '-';
 
-    $maskedUsername = substr($username, 0, 2) . str_repeat('*', strlen($username) - 2);
-    return $maskedUsername . '@' . $domain;
-});
+        $slug = strtolower(trim((string) $value));
+        $slug = preg_replace('/[^a-z0-9]+/', $separator, $slug);
+        $slug = trim($slug, $separator);
+
+        return $slug;
+    }
+
+    public function getName(): string
+    {
+        return 'slug';
+    }
+
+    public function canFormat(mixed $value): bool
+    {
+        return is_string($value) || is_numeric($value) ||
+               (is_object($value) && method_exists($value, '__toString'));
+    }
+}
+```
+
+### Registering Formatter Classes
+
+#### Via Config (Recommended)
+
+Add to `config/placeholdify.php`:
+
+```php
+'formatters' => [
+    'slug' => \App\Formatters\SlugFormatter::class,
+    'phone' => \App\Formatters\PhoneFormatter::class,
+],
+```
+
+#### Manually
+
+```php
+$handler->registerFormatterInstance(new \App\Formatters\SlugFormatter());
 ```
 
 ### Using Custom Formatters
 
 ```php
-$handler->addFormatted('description', $longText, 'truncate', 100, '...');
-$handler->addFormatted('email', 'john@example.com', 'mask_email');
-// Output: "jo****@example.com"
+$handler->addFormatted('title', 'Hello World Test!', 'slug');
+// Output: "hello-world-test"
+
+$handler->addFormatted('title', 'Hello World Test!', 'slug', '_');
+// Output: "hello_world_test"
+
+$handler->addFormatted('phone', '1234567890', 'phone', 'US');
+// Output: "(123) 456-7890"
+```
+
+## Formatter Management
+
+### Check Available Formatters
+
+```php
+// Check if formatter exists
+if ($handler->hasFormatter('slug')) {
+    // Use the formatter
+}
+
+// Get all registered formatters
+$formatters = $handler->getRegisteredFormatters();
+// Returns: ['date', 'currency', 'upper', 'slug', ...]
+```
+
+### Remove Formatters
+
+```php
+// Remove a specific formatter
+$handler->unregisterFormatter('upper');
 ```
 
 ## Global Formatters
@@ -105,14 +186,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        PlaceholderHandler::registerGlobalFormatter('money', function($value, $currency = 'MYR') {
-            return $currency . ' ' . number_format($value, 2);
-        });
-
-        PlaceholderHandler::registerGlobalFormatter('phone', function($value) {
-            // Format phone numbers
-            return preg_replace('/(\d{3})(\d{3})(\d{4})/', '($1) $2-$3', $value);
-        });
+        // Register formatter classes globally
+        PlaceholderHandler::registerGlobalFormatter('slug', \App\Formatters\SlugFormatter::class);
+        PlaceholderHandler::registerGlobalFormatter('phone', \App\Formatters\PhoneFormatter::class);
     }
 }
 ```

@@ -63,12 +63,32 @@ it('can format dates', function () {
 
 it('can use custom formatters', function () {
     $handler = new PlaceholderHandler;
-    $handler->registerFormatter('currency', function ($value, $currency = 'USD') {
-        return $currency.' '.number_format($value, 2);
-    });
+
+    // Create a custom formatter class for testing
+    $customCurrencyFormatter = new class implements \CleaniqueCoders\Placeholdify\Contracts\FormatterInterface
+    {
+        public function format(mixed $value, mixed ...$args): string
+        {
+            $currency = $args[0] ?? 'USD';
+
+            return $currency.' '.number_format($value, 2);
+        }
+
+        public function getName(): string
+        {
+            return 'custom_currency';
+        }
+
+        public function canFormat(mixed $value): bool
+        {
+            return is_numeric($value);
+        }
+    };
+
+    $handler->registerFormatterInstance($customCurrencyFormatter);
 
     $result = $handler
-        ->addFormatted('amount', 1234.56, 'currency', 'MYR')
+        ->addFormatted('amount', 1234.56, 'custom_currency', 'MYR')
         ->replace('Amount: {amount}');
 
     expect($result)->toBe('Amount: MYR 1,234.56');

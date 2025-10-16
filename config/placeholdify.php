@@ -29,21 +29,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Global Formatters
+    | Built-in Formatters
     |--------------------------------------------------------------------------
     |
-    | Register global formatters that will be available across all
-    | PlaceholderHandler instances.
+    | Configure which built-in formatters should be automatically registered.
+    | Set to false to disable a formatter, or true to enable it.
+    |
+    */
+    'built_in_formatters' => [
+        'date' => true,
+        'currency' => true,
+        'number' => true,
+        'upper' => true,
+        'lower' => true,
+        'title' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Formatter Classes
+    |--------------------------------------------------------------------------
+    |
+    | Register custom formatter classes that implement FormatterInterface.
+    | Only class-based formatters are supported for consistency and type safety.
     |
     */
     'formatters' => [
         // Example:
-        // 'currency' => function($value, $currency = 'USD') {
-        //     return $currency . ' ' . number_format($value, 2);
-        // },
-    ],
-
-    /*
+        // 'slug' => \App\Formatters\SlugFormatter::class,
+        // 'phone' => \App\Formatters\PhoneFormatter::class,
+    ],    /*
     |--------------------------------------------------------------------------
     | Global Contexts
     |--------------------------------------------------------------------------

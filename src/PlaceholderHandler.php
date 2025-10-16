@@ -2,9 +2,14 @@
 
 namespace CleaniqueCoders\Placeholdify;
 
+use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
+use CleaniqueCoders\Placeholdify\Formatters\CurrencyFormatter;
+use CleaniqueCoders\Placeholdify\Formatters\DateFormatter;
+use CleaniqueCoders\Placeholdify\Formatters\LowerFormatter;
+use CleaniqueCoders\Placeholdify\Formatters\NumberFormatter;
+use CleaniqueCoders\Placeholdify\Formatters\TitleFormatter;
+use CleaniqueCoders\Placeholdify\Formatters\UpperFormatter;
 use Closure;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 class PlaceholderHandler
 {
@@ -41,9 +46,15 @@ class PlaceholderHandler
                 $this->endDelimiter = $config['delimiter']['end'] ?? '}';
             }
 
+            // Register custom formatter classes from config
             if (isset($config['formatters']) && is_array($config['formatters'])) {
-                foreach ($config['formatters'] as $name => $formatter) {
-                    $this->registerFormatter($name, $formatter);
+                foreach ($config['formatters'] as $name => $formatterClass) {
+                    if (is_string($formatterClass) && class_exists($formatterClass)) {
+                        $formatterInstance = new $formatterClass;
+                        if ($formatterInstance instanceof FormatterInterface) {
+                            $this->registerFormatterInstance($formatterInstance);
+                        }
+                    }
                 }
             }
 
@@ -56,37 +67,57 @@ class PlaceholderHandler
     }
 
     /**
-     * Register built-in formatters
+     * Register built-in formatters based on configuration
      */
     protected function registerBuiltInFormatters(): void
     {
-        $this->registerFormatter('date', function ($value, $format = 'Y-m-d') {
-            if ($value instanceof Carbon) {
-                return $value->format($format);
-            }
+        $builtInFormatters = [];
 
-            return Carbon::parse($value)->format($format);
-        });
+        if (function_exists('config')) {
+            $builtInFormatters = config('placeholdify.built_in_formatters', [
+                'date' => true,
+                'currency' => true,
+                'number' => true,
+                'upper' => true,
+                'lower' => true,
+                'title' => true,
+            ]);
+        } else {
+            // Default configuration when not in Laravel environment
+            $builtInFormatters = [
+                'date' => true,
+                'currency' => true,
+                'number' => true,
+                'upper' => true,
+                'lower' => true,
+                'title' => true,
+            ];
+        }
 
-        $this->registerFormatter('currency', function ($value, $currency = 'USD') {
-            return $currency.' '.number_format((float) $value, 2);
-        });
+        // Register enabled built-in formatters
+        if ($builtInFormatters['date'] ?? true) {
+            $this->registerFormatterInstance(new DateFormatter);
+        }
 
-        $this->registerFormatter('number', function ($value, $decimals = 0) {
-            return number_format((float) $value, $decimals);
-        });
+        if ($builtInFormatters['currency'] ?? true) {
+            $this->registerFormatterInstance(new CurrencyFormatter);
+        }
 
-        $this->registerFormatter('upper', function ($value) {
-            return strtoupper($value);
-        });
+        if ($builtInFormatters['number'] ?? true) {
+            $this->registerFormatterInstance(new NumberFormatter);
+        }
 
-        $this->registerFormatter('lower', function ($value) {
-            return strtolower($value);
-        });
+        if ($builtInFormatters['upper'] ?? true) {
+            $this->registerFormatterInstance(new UpperFormatter);
+        }
 
-        $this->registerFormatter('title', function ($value) {
-            return Str::title($value);
-        });
+        if ($builtInFormatters['lower'] ?? true) {
+            $this->registerFormatterInstance(new LowerFormatter);
+        }
+
+        if ($builtInFormatters['title'] ?? true) {
+            $this->registerFormatterInstance(new TitleFormatter);
+        }
     }
 
     /**
@@ -247,11 +278,43 @@ class PlaceholderHandler
     }
 
     /**
-     * Register custom formatter
+     * Register custom formatter instance
      */
-    public function registerFormatter(string $name, Closure $formatter): self
+    public function registerFormatterInstance(FormatterInterface $formatter): self
     {
-        $this->formatters[$name] = $formatter;
+        $this->formatters[$formatter->getName()] = function ($value, ...$args) use ($formatter) {
+            if (! $formatter->canFormat($value)) {
+                return $this->fallback;
+            }
+
+            return $formatter->format($value, ...$args);
+        };
+
+        return $this;
+    }
+
+    /**
+     * Check if a formatter is registered
+     */
+    public function hasFormatter(string $name): bool
+    {
+        return isset($this->formatters[$name]);
+    }
+
+    /**
+     * Get all registered formatter names
+     */
+    public function getRegisteredFormatters(): array
+    {
+        return array_keys($this->formatters);
+    }
+
+    /**
+     * Unregister a formatter
+     */
+    public function unregisterFormatter(string $name): self
+    {
+        unset($this->formatters[$name]);
 
         return $this;
     }
@@ -384,6 +447,18 @@ class PlaceholderHandler
             $contexts = config('placeholdify.contexts', []);
             $contexts[$name] = $mapping;
             config(['placeholdify.contexts' => $contexts]);
+        }
+    }
+
+    /**
+     * Register global formatter (only supports class names)
+     */
+    public static function registerGlobalFormatter(string $name, string $formatterClass): void
+    {
+        if (function_exists('config')) {
+            $formatters = config('placeholdify.formatters', []);
+            $formatters[$name] = $formatterClass;
+            config(['placeholdify.formatters' => $formatters]);
         }
     }
 
