@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace CleaniqueCoders\Placeholdify\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class PlaceholdifyCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'placeholdify';
 
     public $description = 'My command';
 
