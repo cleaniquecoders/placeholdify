@@ -93,17 +93,20 @@ composer install
 ### Running Individual Examples
 
 **Context Examples:**
+
 ```bash
 php examples/Context/context_examples.php
 ```
 
 **Running Template Classes:**
+
 ```bash
 # Template classes are designed to be used within Laravel applications
 # See the Usage examples for implementation patterns
 ```
 
 **Using Controller Examples:**
+
 ```bash
 # Copy the controller examples to your Laravel application
 # and adapt them to your specific routes and requirements
@@ -195,6 +198,7 @@ Examine the `Templates/` classes and `Usage/` controllers for:
 ## 🎯 Common Patterns
 
 ### Context Registration Pattern
+
 ```php
 // Register once (in service provider)
 $handler->registerContextMapping('user', [
@@ -208,6 +212,7 @@ $handler->useContext('user', $user, 'user');
 ```
 
 ### Template Class Pattern
+
 ```php
 class MyTemplate extends PlaceholdifyBase
 {
@@ -222,6 +227,7 @@ class MyTemplate extends PlaceholdifyBase
 ```
 
 ### Custom Formatter Pattern
+
 ```php
 class MyFormatter implements FormatterInterface
 {
