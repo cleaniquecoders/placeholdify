@@ -65,7 +65,7 @@ $content = $handler
 
 ```php
 // Register context once
-$handler->registerContext('user', [
+$handler->registerContextMapping('user', [
     'name' => 'name',
     'email' => 'email',
     'role' => fn($user) => $user->roles->pluck('name')->join(', '),

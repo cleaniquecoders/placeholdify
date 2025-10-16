@@ -58,21 +58,22 @@ return [
         // Example:
         // 'slug' => \App\Formatters\SlugFormatter::class,
         // 'phone' => \App\Formatters\PhoneFormatter::class,
-    ],    /*
+    ],
+
+    /*
     |--------------------------------------------------------------------------
-    | Global Contexts
+    | Context Classes
     |--------------------------------------------------------------------------
     |
-    | Register global context mappings that will be available across all
-    | PlaceholderHandler instances.
+    | Register context classes that implement ContextInterface.
+    | These provide reusable mappings for extracting data from objects.
     |
     */
-    'contexts' => [
-        // Example:
-        // 'user' => [
-        //     'name' => 'name',
-        //     'email' => 'email',
-        //     'role' => fn($user) => $user->roles->pluck('name')->join(', '),
-        // ],
+    'context_classes' => [
+        \CleaniqueCoders\Placeholdify\Contexts\UserContext::class,
+
+        // Add your custom context classes here:
+        // \App\Contexts\CustomerContext::class,
+        // \App\Contexts\OrderContext::class,
     ],
 ];

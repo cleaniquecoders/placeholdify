@@ -15,7 +15,7 @@ class AcademicWarningLetter extends PlaceholdifyBase
         $this->handler->setFallback('N/A');
 
         // Register student context
-        $this->handler->registerContext('student', [
+        $this->handler->registerContextMapping('student', [
             'name' => 'full_name',
             'matric' => 'matric_number',
             'program' => 'program.name',
@@ -23,11 +23,6 @@ class AcademicWarningLetter extends PlaceholdifyBase
             'semester' => 'current_semester',
             'advisor' => 'academic_advisor.name',
         ]);
-
-        // Register GPA formatter
-        $this->handler->registerFormatter('gpa', function ($value) {
-            return number_format($value, 2);
-        });
     }
 
     public function build($academicRecord): PlaceholderHandler

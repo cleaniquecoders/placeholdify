@@ -15,7 +15,7 @@ class MedicalLeaveLetter extends PlaceholdifyBase
         $this->handler->setFallback('N/A');
 
         // Register employee context
-        $this->handler->registerContext('employee', [
+        $this->handler->registerContextMapping('employee', [
             'name' => 'full_name',
             'employee_id' => 'employee_id',
             'department' => 'department.name',
@@ -24,7 +24,7 @@ class MedicalLeaveLetter extends PlaceholdifyBase
         ]);
 
         // Register medical context with custom formatters
-        $this->handler->registerContext('medical', [
+        $this->handler->registerContextMapping('medical', [
             'condition' => ['property' => 'medical_condition', 'formatter' => 'title'],
             'doctor' => 'attending_physician',
             'hospital' => 'medical_facility',

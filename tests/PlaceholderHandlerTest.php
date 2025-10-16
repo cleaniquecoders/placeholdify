@@ -85,7 +85,7 @@ it('can use custom formatters', function () {
         }
     };
 
-    $handler->registerFormatterInstance($customCurrencyFormatter);
+    $handler->registerFormatter($customCurrencyFormatter);
 
     $result = $handler
         ->addFormatted('amount', 1234.56, 'custom_currency', 'MYR')
@@ -138,7 +138,7 @@ it('can register and use contexts', function () {
     ];
 
     $handler = new PlaceholderHandler;
-    $handler->registerContext('user', [
+    $handler->registerContextMapping('user', [
         'name' => 'name',
         'email' => 'email',
         'dept' => 'profile.department',

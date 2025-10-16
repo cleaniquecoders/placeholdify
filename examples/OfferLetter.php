@@ -15,7 +15,7 @@ class OfferLetter extends PlaceholdifyBase
         $this->handler->setFallback('To be determined');
 
         // Register employee context
-        $this->handler->registerContext('employee', [
+        $this->handler->registerContextMapping('employee', [
             'name' => 'full_name',
             'email' => 'email',
             'phone' => 'phone_number',
@@ -23,16 +23,11 @@ class OfferLetter extends PlaceholdifyBase
         ]);
 
         // Register position context
-        $this->handler->registerContext('position', [
+        $this->handler->registerContextMapping('position', [
             'title' => 'title',
             'department' => 'department.name',
             'level' => 'level',
         ]);
-
-        // Register salary formatter
-        $this->handler->registerFormatter('salary', function ($value, $currency = 'RM') {
-            return $currency.' '.number_format($value, 2);
-        });
     }
 
     public function build($offerData): PlaceholderHandler

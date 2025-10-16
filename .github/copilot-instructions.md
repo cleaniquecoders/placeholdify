@@ -41,7 +41,7 @@ $content = $handler
 Register reusable mappings for models:
 
 ```php
-$handler->registerContext('student', [
+$handler->registerContextMapping('student', [
     'name' => 'student_name',
     'email' => 'email',
     'program' => 'program.name', // supports dot notation
@@ -53,9 +53,7 @@ Built-in and custom formatters for data transformation:
 
 ```php
 $handler->addFormatted('amount', 1234.56, 'currency', 'MYR');
-$handler->registerFormatter('custom', function($value, ...$args) {
-    return strtoupper($value);
-});
+$handler->registerFormatter(new \App\Formatters\CustomFormatter());
 ```
 
 ## Code Patterns
@@ -75,7 +73,7 @@ $handler->addDate('expires_at', now()->addYear(), 'F j, Y');
 ### When working with contexts:
 ```php
 // Register once (in service provider)
-$handler->registerContext('user', [
+$handler->registerContextMapping('user', [
     'name' => 'name',
     'email' => 'email',
     'role' => fn($user) => $user->roles->pluck('name')->join(', '),
@@ -145,6 +143,9 @@ return [
 - `addLazy()` - Lazy evaluation
 - `addIf()` - Conditional addition
 - `addFromContext()` - Object property extraction
+- `registerContext()` - Register ContextInterface instances
+- `registerContextMapping()` - Register array-based contexts
+- `registerFormatter()` - Register FormatterInterface instances
 
 ### Classes:
 - `*Context` - Context mapping classes

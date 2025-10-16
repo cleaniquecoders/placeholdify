@@ -191,10 +191,10 @@ $handler->addFromContext('user', $user, [
 
 ### Context Management
 
-#### registerContext()
+#### registerContextMapping()
 
 ```php
-public function registerContext(string $name, array $mapping): self
+public function registerContextMapping(string $name, array $mapping): self
 ```
 
 Register a reusable context mapping.
@@ -207,11 +207,29 @@ Register a reusable context mapping.
 **Example:**
 
 ```php
-$handler->registerContext('user', [
+$handler->registerContextMapping('user', [
     'name' => 'name',
     'email' => 'email',
     'role' => fn($user) => $user->roles->pluck('name')->join(', ')
 ]);
+```
+
+#### registerContext()
+
+```php
+public function registerContext(ContextInterface $context): self
+```
+
+Register a context instance.
+
+**Parameters:**
+
+- `$context` - Context instance implementing ContextInterface
+
+**Example:**
+
+```php
+$handler->registerContext(new \App\Contexts\UserContext());
 ```
 
 #### useContext()

@@ -43,11 +43,7 @@ echo $content."\n\n";
 echo "=== Example 3: Custom Formatters ===\n";
 $handler = new PlaceholderHandler;
 
-// Register custom formatter
-$handler->registerFormatter('currency', function ($value, $currency = 'USD') {
-    return $currency.' '.number_format($value, 2);
-});
-
+// Use built-in currency formatter
 $content = $handler
     ->addFormatted('total', 1234.56, 'currency', 'MYR')
     ->addFormatted('name', 'john doe', 'upper')
@@ -80,7 +76,7 @@ $student = (object) [
 $handler = new PlaceholderHandler;
 
 // Register context once
-$handler->registerContext('student', [
+$handler->registerContextMapping('student', [
     'name' => 'student_name',
     'email' => 'email',
     'matric' => 'matric_number',

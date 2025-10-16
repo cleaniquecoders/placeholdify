@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\Placeholdify;
 
+use CleaniqueCoders\Placeholdify\Contracts\ContextInterface;
 use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
 use CleaniqueCoders\Placeholdify\Formatters\CurrencyFormatter;
 use CleaniqueCoders\Placeholdify\Formatters\DateFormatter;
@@ -36,32 +37,45 @@ class PlaceholderHandler
      */
     protected function loadConfig(): void
     {
-        if (function_exists('config')) {
-            $config = config('placeholdify', []);
+        if (function_exists('config') && function_exists('app') && app()->bound('config')) {
+            try {
+                $config = config('placeholdify', []);
 
-            $this->fallback = $config['fallback'] ?? 'N/A';
+                $this->fallback = $config['fallback'] ?? 'N/A';
 
-            if (isset($config['delimiter'])) {
-                $this->startDelimiter = $config['delimiter']['start'] ?? '{';
-                $this->endDelimiter = $config['delimiter']['end'] ?? '}';
-            }
+                if (isset($config['delimiter'])) {
+                    $this->startDelimiter = $config['delimiter']['start'] ?? '{';
+                    $this->endDelimiter = $config['delimiter']['end'] ?? '}';
+                }
 
-            // Register custom formatter classes from config
-            if (isset($config['formatters']) && is_array($config['formatters'])) {
-                foreach ($config['formatters'] as $name => $formatterClass) {
-                    if (is_string($formatterClass) && class_exists($formatterClass)) {
-                        $formatterInstance = new $formatterClass;
-                        if ($formatterInstance instanceof FormatterInterface) {
-                            $this->registerFormatterInstance($formatterInstance);
+                // Register custom formatter classes from config
+                if (isset($config['formatters']) && is_array($config['formatters'])) {
+                    foreach ($config['formatters'] as $name => $formatterClass) {
+                        if (is_string($formatterClass) && class_exists($formatterClass)) {
+                            $formatterInstance = new $formatterClass;
+                            if ($formatterInstance instanceof FormatterInterface) {
+                                $this->registerFormatter($formatterInstance);
+                            }
                         }
                     }
                 }
-            }
 
-            if (isset($config['contexts']) && is_array($config['contexts'])) {
-                foreach ($config['contexts'] as $name => $context) {
-                    $this->registerContext($name, $context);
+                // Register context classes from config only
+                if (isset($config['context_classes']) && is_array($config['context_classes'])) {
+                    foreach ($config['context_classes'] as $contextClass) {
+                        if (is_string($contextClass) && class_exists($contextClass)) {
+                            $contextInstance = new $contextClass;
+                            if ($contextInstance instanceof ContextInterface) {
+                                $this->registerContext($contextInstance);
+                            }
+                        }
+                    }
                 }
+            } catch (\Exception $e) {
+                // If config loading fails, use defaults
+                $this->fallback = 'N/A';
+                $this->startDelimiter = '{';
+                $this->endDelimiter = '}';
             }
         }
     }
@@ -73,15 +87,27 @@ class PlaceholderHandler
     {
         $builtInFormatters = [];
 
-        if (function_exists('config')) {
-            $builtInFormatters = config('placeholdify.built_in_formatters', [
-                'date' => true,
-                'currency' => true,
-                'number' => true,
-                'upper' => true,
-                'lower' => true,
-                'title' => true,
-            ]);
+        if (function_exists('config') && function_exists('app') && app()->bound('config')) {
+            try {
+                $builtInFormatters = config('placeholdify.built_in_formatters', [
+                    'date' => true,
+                    'currency' => true,
+                    'number' => true,
+                    'upper' => true,
+                    'lower' => true,
+                    'title' => true,
+                ]);
+            } catch (\Exception $e) {
+                // Use defaults if config fails
+                $builtInFormatters = [
+                    'date' => true,
+                    'currency' => true,
+                    'number' => true,
+                    'upper' => true,
+                    'lower' => true,
+                    'title' => true,
+                ];
+            }
         } else {
             // Default configuration when not in Laravel environment
             $builtInFormatters = [
@@ -96,27 +122,27 @@ class PlaceholderHandler
 
         // Register enabled built-in formatters
         if ($builtInFormatters['date'] ?? true) {
-            $this->registerFormatterInstance(new DateFormatter);
+            $this->registerFormatter(new DateFormatter);
         }
 
         if ($builtInFormatters['currency'] ?? true) {
-            $this->registerFormatterInstance(new CurrencyFormatter);
+            $this->registerFormatter(new CurrencyFormatter);
         }
 
         if ($builtInFormatters['number'] ?? true) {
-            $this->registerFormatterInstance(new NumberFormatter);
+            $this->registerFormatter(new NumberFormatter);
         }
 
         if ($builtInFormatters['upper'] ?? true) {
-            $this->registerFormatterInstance(new UpperFormatter);
+            $this->registerFormatter(new UpperFormatter);
         }
 
         if ($builtInFormatters['lower'] ?? true) {
-            $this->registerFormatterInstance(new LowerFormatter);
+            $this->registerFormatter(new LowerFormatter);
         }
 
         if ($builtInFormatters['title'] ?? true) {
-            $this->registerFormatterInstance(new TitleFormatter);
+            $this->registerFormatter(new TitleFormatter);
         }
     }
 
@@ -256,21 +282,33 @@ class PlaceholderHandler
     }
 
     /**
-     * Use registered context
+     * Use context with an object (supports both array-based and contract-based contexts)
      */
     public function useContext(string $name, object $object, string $prefix = ''): self
     {
-        if (! isset($this->contexts[$name])) {
-            return $this;
+        if (isset($this->contexts[$name])) {
+            $context = $this->contexts[$name];
+
+            if ($context instanceof ContextInterface) {
+                // Handle ContextInterface instances
+                if (! $context->canProcess($object)) {
+                    return $this;
+                }
+
+                return $this->addFromContext($prefix, $object, $context->getMapping());
+            } else {
+                // Handle array-based contexts (legacy support)
+                return $this->addFromContext($prefix, $object, $context);
+            }
         }
 
-        return $this->addFromContext($prefix, $object, $this->contexts[$name]);
+        return $this;
     }
 
     /**
-     * Register context mapping
+     * Register context mapping with name and array
      */
-    public function registerContext(string $name, array $mapping): self
+    public function registerContextMapping(string $name, array $mapping): self
     {
         $this->contexts[$name] = $mapping;
 
@@ -278,9 +316,50 @@ class PlaceholderHandler
     }
 
     /**
+     * Register context instance
+     */
+    public function registerContext(ContextInterface $context): self
+    {
+        $this->contexts[$context->getName()] = $context;
+
+        return $this;
+    }
+
+    /**
+     * Get all registered context names
+     */
+    public function getRegisteredContexts(): array
+    {
+        return array_keys($this->contexts);
+    }
+
+    /**
+     * Get all registered context instances
+     */
+    public function getRegisteredContextInstances(): array
+    {
+        $instances = [];
+        foreach ($this->contexts as $name => $context) {
+            if ($context instanceof ContextInterface) {
+                $instances[] = $name;
+            }
+        }
+
+        return $instances;
+    }
+
+    /**
+     * Check if a context is registered
+     */
+    public function hasContext(string $name): bool
+    {
+        return isset($this->contexts[$name]);
+    }
+
+    /**
      * Register custom formatter instance
      */
-    public function registerFormatterInstance(FormatterInterface $formatter): self
+    public function registerFormatter(FormatterInterface $formatter): self
     {
         $this->formatters[$formatter->getName()] = function ($value, ...$args) use ($formatter) {
             if (! $formatter->canFormat($value)) {
@@ -436,18 +515,6 @@ class PlaceholderHandler
         }
 
         return $handler->addMany($placeholders)->replace($content);
-    }
-
-    /**
-     * Register global context
-     */
-    public static function registerGlobalContext(string $name, array $mapping): void
-    {
-        if (function_exists('config')) {
-            $contexts = config('placeholdify.contexts', []);
-            $contexts[$name] = $mapping;
-            config(['placeholdify.contexts' => $contexts]);
-        }
     }
 
     /**

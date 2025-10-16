@@ -16,7 +16,7 @@ class RentalAgreementLetter extends PlaceholdifyBase
         $this->handler->setDelimiter('[', ']'); // Use different delimiters for rental documents
 
         // Register tenant context
-        $this->handler->registerContext('tenant', [
+        $this->handler->registerContextMapping('tenant', [
             'name' => 'full_name',
             'ic' => 'identity_number',
             'phone' => 'phone_number',
@@ -25,7 +25,7 @@ class RentalAgreementLetter extends PlaceholdifyBase
         ]);
 
         // Register landlord context
-        $this->handler->registerContext('landlord', [
+        $this->handler->registerContextMapping('landlord', [
             'name' => 'full_name',
             'ic' => 'identity_number',
             'phone' => 'phone_number',
@@ -33,18 +33,13 @@ class RentalAgreementLetter extends PlaceholdifyBase
         ]);
 
         // Register property context
-        $this->handler->registerContext('property', [
+        $this->handler->registerContextMapping('property', [
             'address' => 'full_address',
             'type' => 'property_type',
             'size' => 'size_sqft',
             'rooms' => 'bedroom_count',
             'bathrooms' => 'bathroom_count',
         ]);
-
-        // Register currency formatter
-        $this->handler->registerFormatter('currency', function ($value, $currency = 'RM') {
-            return $currency.' '.number_format($value, 2);
-        });
     }
 
     public function build($rentalData): PlaceholderHandler

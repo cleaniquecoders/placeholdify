@@ -15,7 +15,7 @@ class EventInvitationLetter extends PlaceholdifyBase
         $this->handler->setFallback('TBA');
 
         // Register guest context
-        $this->handler->registerContext('guest', [
+        $this->handler->registerContextMapping('guest', [
             'name' => 'full_name',
             'title' => 'professional_title',
             'organization' => 'organization.name',
@@ -23,22 +23,13 @@ class EventInvitationLetter extends PlaceholdifyBase
         ]);
 
         // Register event context
-        $this->handler->registerContext('event', [
+        $this->handler->registerContextMapping('event', [
             'name' => 'event_name',
             'type' => 'event_type',
             'venue' => 'venue.name',
             'address' => 'venue.full_address',
             'organizer' => 'organizer.name',
         ]);
-
-        // Register time formatter
-        $this->handler->registerFormatter('time', function ($value, $format = 'g:i A') {
-            if ($value instanceof \DateTime) {
-                return $value->format($format);
-            }
-
-            return \DateTime::createFromFormat('H:i:s', $value)->format($format);
-        });
     }
 
     public function build($invitationData): PlaceholderHandler

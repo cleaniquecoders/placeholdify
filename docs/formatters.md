@@ -134,7 +134,7 @@ Add to `config/placeholdify.php`:
 #### Manually
 
 ```php
-$handler->registerFormatterInstance(new \App\Formatters\SlugFormatter());
+$handler->registerFormatter(new \App\Formatters\SlugFormatter());
 ```
 
 ### Using Custom Formatters

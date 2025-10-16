@@ -40,7 +40,7 @@ it('can register custom formatter instance', function () {
         }
     };
 
-    $handler->registerFormatterInstance($customFormatter);
+    $handler->registerFormatter($customFormatter);
 
     $result = $handler
         ->addFormatted('test', 'hello', 'custom')
@@ -71,7 +71,7 @@ it('can handle formatter validation', function () {
         }
     };
 
-    $handler->registerFormatterInstance($stringOnlyFormatter);
+    $handler->registerFormatter($stringOnlyFormatter);
 
     // Should work with string
     $result1 = $handler
@@ -149,7 +149,7 @@ it('can register slug formatter', function () {
     $handler = new PlaceholderHandler;
     $slugFormatter = new SlugFormatter;
 
-    $handler->registerFormatterInstance($slugFormatter);
+    $handler->registerFormatter($slugFormatter);
 
     $result = $handler
         ->addFormatted('title', 'Hello World Test!', 'slug')
@@ -162,7 +162,7 @@ it('slug formatter can use custom separator', function () {
     $handler = new PlaceholderHandler;
     $slugFormatter = new SlugFormatter;
 
-    $handler->registerFormatterInstance($slugFormatter);
+    $handler->registerFormatter($slugFormatter);
 
     $result = $handler
         ->addFormatted('title', 'Hello World Test!', 'slug', '_')

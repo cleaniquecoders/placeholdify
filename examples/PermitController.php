@@ -43,13 +43,13 @@ class PermitController extends Controller
         $handler = new PlaceholderHandler;
 
         // Register contexts once
-        $handler->registerContext('student', [
+        $handler->registerContextMapping('student', [
             'name' => 'student_name',
             'matric' => 'matric_number',
             'program' => 'program.name',
         ]);
 
-        $handler->registerContext('appliance', [
+        $handler->registerContextMapping('appliance', [
             'type' => 'type',
             'name' => 'name',
             'serial' => 'serial_number',

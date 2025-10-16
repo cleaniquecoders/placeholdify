@@ -101,7 +101,7 @@ $formatters = $handler->getRegisteredFormatters();
 echo "Available formatters: " . implode(', ', $formatters);
 
 // Add a custom formatter at runtime
-$handler->registerFormatterInstance(new \App\Formatters\CustomFormatter());
+$handler->registerFormatter(new \App\Formatters\CustomFormatter());
 
 // Remove a formatter if needed
 $handler->unregisterFormatter('upper');
