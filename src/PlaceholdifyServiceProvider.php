@@ -18,8 +18,17 @@ class PlaceholdifyServiceProvider extends PackageServiceProvider
         $package
             ->name('placeholdify')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_placeholdify_table')
             ->hasCommand(PlaceholdifyCommand::class);
+    }
+
+    public function packageBooted(): void
+    {
+        // Register singleton for PlaceholderHandler
+        $this->app->singleton(PlaceholderHandler::class, function ($app) {
+            return new PlaceholderHandler;
+        });
+
+        // Register facade alias
+        $this->app->alias(PlaceholderHandler::class, 'placeholdify');
     }
 }
