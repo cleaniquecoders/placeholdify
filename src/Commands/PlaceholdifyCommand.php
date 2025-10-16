@@ -7,44 +7,46 @@ use Illuminate\Support\Str;
 
 class PlaceholdifyCommand extends Command
 {
-    public $signature = 'placeholdify:make-template {name} {--type=basic : Template type} {--path=app/Services/Templates : Path where template will be created} {--list : List available template types}';
+    public $signature = 'make:placeholder {name} {type : Component type (template, context, formatter)} {--list : List available component types}';
 
-    public $description = 'Create a new Placeholdify template class';
+    public $description = 'Create a new Placeholdify component (template, context, or formatter)';
 
     public function handle(): int
     {
-        // Show available template types
+        // Show available component types
         if ($this->option('list')) {
-            return $this->listTemplateTypes();
+            return $this->listComponentTypes();
         }
 
         $name = $this->argument('name');
-        $type = $this->option('type') ?? 'basic';
-        $path = $this->option('path');
+        $type = strtolower($this->argument('type'));
 
-        // Get available stubs
-        $availableStubs = $this->getAvailableStubs();
-
-        if (empty($availableStubs)) {
-            $this->error('No template stubs found. Please run: php artisan vendor:publish --tag=placeholdify-stubs');
-
-            return self::FAILURE;
-        }
-
-        // Validate template type
-        if (! in_array($type, $availableStubs)) {
-            $this->error("Invalid template type '{$type}'. Available types: ".implode(', ', $availableStubs));
-            $this->line('Use --list to see all available template types.');
+        // Validate component type
+        $validTypes = ['template', 'context', 'formatter'];
+        if (! in_array($type, $validTypes)) {
+            $this->error("Invalid component type '{$type}'. Valid types: ".implode(', ', $validTypes));
+            $this->line('Use --list to see all available component types.');
 
             return self::FAILURE;
         }
+
+        // Get base path from config
+        $basePath = config('placeholdify.template_path', 'app/Services/Placeholders');
 
         $className = Str::studly($name);
         $fileName = $className.'.php';
-        $namespace = $this->generateNamespace($path);
+
+        // Determine subdirectory and namespace based on type
+        $subPath = match ($type) {
+            'template' => 'Templates',
+            'context' => 'Contexts',
+            'formatter' => 'Formatters',
+        };
+
+        $fullPath = base_path($basePath.'/'.$subPath);
+        $namespace = $this->generateNamespace($basePath.'/'.$subPath);
 
         // Create directory if it doesn't exist
-        $fullPath = base_path($path);
         if (! is_dir($fullPath)) {
             mkdir($fullPath, 0755, true);
         }
@@ -53,25 +55,22 @@ class PlaceholdifyCommand extends Command
 
         // Check if file already exists
         if (file_exists($filePath)) {
-            $this->error("Template class {$className} already exists at {$filePath}");
+            $this->error("Component {$className} already exists at {$filePath}");
 
             return self::FAILURE;
         }
 
-        // Load and process stub
-        $stubContent = $this->loadStub($type);
-        if ($stubContent === null) {
-            $this->error("Could not load stub for type '{$type}'");
-
-            return self::FAILURE;
-        }
-
-        $content = $this->processStub($stubContent, $className, $namespace);
+        // Generate content based on type
+        $content = match ($type) {
+            'template' => $this->generateTemplateContent($className, $namespace),
+            'context' => $this->generateContextContent($className, $namespace),
+            'formatter' => $this->generateFormatterContent($className, $namespace),
+        };
 
         // Write file
         file_put_contents($filePath, $content);
 
-        $this->info("✅ Template '{$className}' created successfully!");
+        $this->info("✅ {$className} {$type} created successfully!");
         $this->line("📁 Location: {$filePath}");
         $this->line("📝 Namespace: {$namespace}");
         $this->line("🎯 Type: {$type}");
@@ -79,80 +78,150 @@ class PlaceholdifyCommand extends Command
         return self::SUCCESS;
     }
 
-    protected function listTemplateTypes(): int
+    protected function listComponentTypes(): int
     {
-        $availableStubs = $this->getAvailableStubs();
+        $this->info('Available Component Types:');
+        $this->line('=========================');
 
-        if (empty($availableStubs)) {
-            $this->warn('No template stubs found.');
-            $this->line('Run: php artisan vendor:publish --tag=placeholdify-stubs');
-
-            return self::SUCCESS;
-        }
-
-        $this->info('Available Template Types:');
-        $this->line('========================');
-
-        foreach ($availableStubs as $type) {
-            $this->line("• {$type}");
-        }
+        $this->line('• <comment>template</comment> - Create a template class for content placeholders');
+        $this->line('• <comment>context</comment>  - Create a context class for object mappings');
+        $this->line('• <comment>formatter</comment> - Create a formatter class for data transformation');
 
         $this->newLine();
-        $this->line('Usage: php artisan placeholdify:make-template YourTemplate --type=basic');
+        $this->line('Usage Examples:');
+        $this->line('  php artisan make:placeholder InvoiceTemplate template');
+        $this->line('  php artisan make:placeholder UserContext context');
+        $this->line('  php artisan make:placeholder PhoneFormatter formatter');
 
         return self::SUCCESS;
     }
 
-    protected function getAvailableStubs(): array
+    protected function generateTemplateContent(string $className, string $namespace): string
     {
-        $stubPaths = [
-            base_path('stubs/placeholdify'), // Published stubs
-            __DIR__.'/../../stubs/placeholdify', // Package stubs
-        ];
+        return "<?php
 
-        $stubs = [];
+namespace {$namespace};
 
-        foreach ($stubPaths as $stubPath) {
-            if (! is_dir($stubPath)) {
-                continue;
-            }
+use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
-            $files = glob($stubPath.'/template.*.stub');
+/**
+ * {$className} Template
+ *
+ * Template for handling placeholders in content.
+ */
+class {$className} extends PlaceholdifyBase
+{
+    protected function configure(): void
+    {
+        \$this->handler->setFallback('N/A');
 
-            foreach ($files as $file) {
-                $filename = basename($file);
-                if (preg_match('/^template\.(.+)\.stub$/', $filename, $matches)) {
-                    $stubs[] = $matches[1];
-                }
-            }
-        }
-
-        return array_unique($stubs);
+        // Add any custom configuration here
+        // Example: \$this->handler->registerFormatter('custom', function(\$value) { return strtoupper(\$value); });
     }
 
-    protected function loadStub(string $type): ?string
+    public function build(mixed \$data): PlaceholderHandler
     {
-        $stubPaths = [
-            base_path("stubs/placeholdify/template.{$type}.stub"), // Published stubs first
-            __DIR__."/../../stubs/placeholdify/template.{$type}.stub", // Package stubs as fallback
-        ];
-
-        foreach ($stubPaths as $stubPath) {
-            if (file_exists($stubPath)) {
-                return file_get_contents($stubPath);
-            }
-        }
-
-        return null;
+        return \$this->handler
+            ->add('title', \$data->title ?? 'Untitled')
+            ->addDate('created_at', now(), 'F j, Y')
+            ->add('content', \$data->content ?? '');
+            // Add more placeholders as needed
+    }
+}
+";
     }
 
-    protected function processStub(string $content, string $className, string $namespace): string
+    protected function generateContextContent(string $className, string $namespace): string
     {
-        return str_replace(
-            ['{{ namespace }}', '{{ class }}'],
-            [$namespace, $className],
-            $content
-        );
+        $contextName = Str::snake(str_replace('Context', '', $className));
+
+        return "<?php
+
+namespace {$namespace};
+
+use CleaniqueCoders\Placeholdify\Contracts\ContextInterface;
+
+/**
+ * {$className} Context
+ *
+ * Context class for {$contextName} object mappings.
+ */
+class {$className} implements ContextInterface
+{
+    public function getName(): string
+    {
+        return '{$contextName}';
+    }
+
+    public function getMapping(): array
+    {
+        return [
+            'id' => 'id',
+            'name' => 'name',
+            'created_at' => fn(\$object) => \$object->created_at?->format('F j, Y') ?? 'Unknown',
+            // Add more mappings as needed
+        ];
+    }
+
+    public function canProcess(mixed \$object): bool
+    {
+        // Implement your validation logic here
+        return is_object(\$object) && property_exists(\$object, 'id');
+    }
+
+    public function getSupportedTypes(): array
+    {
+        return [
+            // Add supported class names or interfaces
+            // Example: User::class, 'App\\Models\\User'
+        ];
+    }
+}
+";
+    }
+
+    protected function generateFormatterContent(string $className, string $namespace): string
+    {
+        $formatterName = Str::snake(str_replace('Formatter', '', $className));
+
+        return "<?php
+
+namespace {$namespace};
+
+use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
+
+/**
+ * {$className} Formatter
+ *
+ * Custom formatter for {$formatterName} data transformation.
+ */
+class {$className} implements FormatterInterface
+{
+    public function getName(): string
+    {
+        return '{$formatterName}';
+    }
+
+    public function canFormat(mixed \$value): bool
+    {
+        // Implement your validation logic here
+        return is_string(\$value) || is_numeric(\$value);
+    }
+
+    public function format(mixed \$value, mixed ...\$options): string
+    {
+        if (empty(\$value)) {
+            return 'N/A';
+        }
+
+        // Implement your formatting logic here
+        // You can use \$options for additional parameters
+
+        return (string) \$value;
+    }
+}
+";
     }
 
     protected function generateNamespace(string $path): string

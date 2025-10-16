@@ -2,6 +2,19 @@
 
 // config for CleaniqueCoders/Placeholdify
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Template Path
+    |--------------------------------------------------------------------------
+    |
+    | The default directory path where template classes will be generated
+    | when using the make:placeholdify-template command. This path is
+    | relative to the app directory.
+    |
+    */
+    'template_path' => 'app/Services/Placeholders',
+
     /*
     |--------------------------------------------------------------------------
     | Placeholder Delimiters

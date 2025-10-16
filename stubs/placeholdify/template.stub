@@ -1,0 +1,31 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\PlaceholderHandler;
+use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
+
+/**
+ * {{ class }} Template
+ *
+ * Template for handling placeholders in content.
+ */
+class {{ class }} extends PlaceholdifyBase
+{
+    protected function configure(): void
+    {
+        $this->handler->setFallback('N/A');
+
+        // Add any custom configuration here
+        // Example: $this->handler->registerFormatter('custom', function($value) { return strtoupper($value); });
+    }
+
+    public function build(mixed $data): PlaceholderHandler
+    {
+        return $this->handler
+            ->add('title', $data->title ?? 'Untitled')
+            ->addDate('created_at', now(), 'F j, Y')
+            ->add('content', $data->content ?? '');
+            // Add more placeholders as needed
+    }
+}

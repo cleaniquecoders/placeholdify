@@ -1,0 +1,42 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\Contracts\ContextInterface;
+
+/**
+ * {{ class }} Context
+ *
+ * Context class for {{ context_name }} object mappings.
+ */
+class {{ class }} implements ContextInterface
+{
+    public function getName(): string
+    {
+        return '{{ context_name }}';
+    }
+
+    public function getMapping(): array
+    {
+        return [
+            'id' => 'id',
+            'name' => 'name',
+            'created_at' => fn($object) => $object->created_at?->format('F j, Y') ?? 'Unknown',
+            // Add more mappings as needed
+        ];
+    }
+
+    public function canProcess(mixed $object): bool
+    {
+        // Implement your validation logic here
+        return is_object($object) && property_exists($object, 'id');
+    }
+
+    public function getSupportedTypes(): array
+    {
+        return [
+            // Add supported class names or interfaces
+            // Example: User::class, 'App\\Models\\User'
+        ];
+    }
+}

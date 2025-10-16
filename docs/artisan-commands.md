@@ -1,372 +1,221 @@
 # Artisan Commands
 
-Placeholdify provides several Artisan commands to help you work with templates and demonstrate package functionality.
+Placeholdify provides Artisan commands to help you create templates, contexts, and formatters quickly.
 
-## Template Creation Command
+## Component Creation Command
 
-The `placeholdify:make-template` command generates new template classes with customizable stubs.
+The `make:placeholder` command generates new component classes (templates, contexts, or formatters) with proper structure and boilerplate code.
 
 ### Usage
 
 ```bash
-php artisan placeholdify:make-template {name} {--type=basic} {--path=app/Services/Templates} {--list}
+php artisan make:placeholder {name} {type} {--list}
 ```
 
 ### Parameters
 
-- `name`: The name of your template class (required)
-- `--type`: Template type (optional, default: basic)
-- `--path`: Directory path where template will be created (optional, default: app/Services/Templates)
-- `--list`: List all available template types
+- `name`: The name of your component class (required)
+- `type`: Component type - `template`, `context`, or `formatter` (required)
+- `--list`: List all available component types and usage examples
+
+### Available Component Types
+
+#### Templates
+
+Creates template classes that extend `PlaceholdifyBase` for handling content placeholders.
+
+#### Contexts
+
+Creates context classes that implement `ContextInterface` for reusable object mappings.
+
+#### Formatters
+
+Creates formatter classes that implement `FormatterInterface` for custom data transformation.
+
+### Default Directory Structure
+
+All components are created under the configured base path (default: `app/Services/Placeholders`):
+
+- **Templates**: `app/Services/Placeholders/Templates/`
+- **Contexts**: `app/Services/Placeholders/Contexts/`
+- **Formatters**: `app/Services/Placeholders/Formatters/`
 
 ### Examples
 
-#### Create a Basic Template
+#### List Available Component Types
 
 ```bash
-php artisan placeholdify:make-template NewsletterTemplate
+php artisan make:placeholder --list
 ```
 
-This creates `app/Services/Templates/NewsletterTemplate.php`:
+#### Create a Template
+
+```bash
+php artisan make:placeholder InvoiceTemplate template
+```
+
+This creates `app/Services/Placeholders/Templates/InvoiceTemplate.php`:
 
 ```php
 <?php
 
-namespace App\Services\Templates;
-
-use CleaniqueCoders\Placeholdify\PlaceholderHandler;
-use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
-
-class NewsletterTemplate extends PlaceholdifyBase
-{
-    protected function configure(): void
-    {
-        $this->handler->setFallback('N/A');
-    }
-
-    public function build(mixed $data): PlaceholderHandler
-    {
-        return $this->handler
-            ->add('title', $data->title ?? '')
-            ->add('content', $data->content ?? '')
-            ->addDate('date', now());
-    }
-}
-```
-
-#### Create Different Template Types
-
-```bash
-# Letter template
-php artisan placeholdify:make-template WelcomeLetter --type=letter
-
-# Invoice template
-php artisan placeholdify:make-template SalesInvoice --type=invoice
-
-# Email template
-php artisan placeholdify:make-template WelcomeEmail --type=email
-
-# Custom path
-php artisan placeholdify:make-template ReportTemplate --path=app/Reports/Templates
-```
-
-#### List Available Templates
-
-```bash
-php artisan placeholdify:make-template --list
-```
-
-Output:
-
-```
-Available template types:
-- basic: Basic template with common placeholders
-- letter: Formal letter template with sender/recipient contexts
-- invoice: Invoice template with financial formatters
-- email: Email template with user/company contexts
-```
-
-### Publishing and Customizing Stubs
-
-Publish the template stubs to customize them:
-
-```bash
-php artisan vendor:publish --tag=placeholdify-stubs
-```
-
-This creates `stubs/placeholdify/` directory with customizable stub files:
-
-```
-stubs/
-└── placeholdify/
-    ├── template.basic.stub
-    ├── template.email.stub
-    ├── template.invoice.stub
-    └── template.letter.stub
-```
-
-#### Benefits of `stubs/placeholdify/` Structure
-
-1. **Namespace isolation**: Prevents conflicts with main application stubs
-2. **Clear ownership**: Obvious that these stubs belong to Placeholdify package
-3. **Organization**: Groups related stubs together
-4. **Future-proof**: Allows for additional stub categories if needed
-
-### Creating Custom Stubs
-
-Create custom template stubs by adding new files to `stubs/placeholdify/`:
-
-#### Example: Report Template Stub
-
-Create `stubs/placeholdify/template.report.stub`:
-
-```php
-<?php
-
-namespace {{ namespace }};
+namespace App\Services\Placeholders\Templates;
 
 use CleaniqueCoders\Placeholdify\PlaceholderHandler;
 use CleaniqueCoders\Placeholdify\PlaceholdifyBase;
 
 /**
- * {{ class }} Report Template
+ * InvoiceTemplate Template
+ *
+ * Template for handling placeholders in content.
  */
-class {{ class }} extends PlaceholdifyBase
+class InvoiceTemplate extends PlaceholdifyBase
 {
     protected function configure(): void
     {
         $this->handler->setFallback('N/A');
 
-        // Register report-specific formatters
-        $this->handler->registerFormatter('percentage', function($value, $decimals = 2) {
-            return number_format($value * 100, $decimals) . '%';
-        });
+        // Add any custom configuration here
+        // Example: $this->handler->registerFormatter('custom', function($value) { return strtoupper($value); });
     }
 
     public function build(mixed $data): PlaceholderHandler
     {
         return $this->handler
-            ->add('report_title', $data->title ?? '')
-            ->add('department', $data->department ?? '')
-            ->addDate('period_start', $data->period_start ?? now()->startOfMonth(), 'F j, Y')
-            ->addDate('period_end', $data->period_end ?? now()->endOfMonth(), 'F j, Y')
-            ->addDate('generated_at', now(), 'F j, Y \a\t g:i A')
-            ->addLazy('summary', function() use ($data) {
-                return $this->generateSummary($data);
-            });
-    }
-
-    protected function generateSummary($data): string
-    {
-        // Generate report summary logic
-        return 'Report summary generated on ' . now()->format('Y-m-d H:i:s');
+            ->add('title', $data->title ?? 'Untitled')
+            ->addDate('created_at', now(), 'F j, Y')
+            ->add('content', $data->content ?? '');
+            // Add more placeholders as needed
     }
 }
 ```
 
-Then use it:
+#### Create a Context
 
 ```bash
-php artisan placeholdify:make-template MonthlyReport --type=report
+php artisan make:placeholder UserContext context
 ```
 
-## Demo Command
+This creates `app/Services/Placeholders/Contexts/UserContext.php`:
 
-The `placeholdify:demo` command demonstrates package functionality with examples.
+```php
+<?php
 
-### Usage
+namespace App\Services\Placeholders\Contexts;
+
+use CleaniqueCoders\Placeholdify\Contracts\ContextInterface;
+
+/**
+ * UserContext Context
+ *
+ * Context class for user object mappings.
+ */
+class UserContext implements ContextInterface
+{
+    public function getName(): string
+    {
+        return 'user';
+    }
+
+    public function getMapping(): array
+    {
+        return [
+            'id' => 'id',
+            'name' => 'name',
+            'created_at' => fn($object) => $object->created_at?->format('F j, Y') ?? 'Unknown',
+            // Add more mappings as needed
+        ];
+    }
+
+    public function canProcess(mixed $object): bool
+    {
+        // Implement your validation logic here
+        return is_object($object) && property_exists($object, 'id');
+    }
+
+    public function getSupportedTypes(): array
+    {
+        return [
+            // Add supported class names or interfaces
+            // Example: User::class, 'App\\Models\\User'
+        ];
+    }
+}
+```
+
+#### Create a Formatter
 
 ```bash
-# Show interactive demo
-php artisan placeholdify:demo
-
-# Process custom template with data
-php artisan placeholdify:demo --template="Hello {name}!" --data='{"name":"World"}'
-
-# Show specific example
-php artisan placeholdify:demo --example=invoice
-
-# List all examples
-php artisan placeholdify:demo --list
+php artisan make:placeholder PhoneFormatter formatter
 ```
 
-### Demo Examples
+This creates `app/Services/Placeholders/Formatters/PhoneFormatter.php`:
 
-The demo command includes several built-in examples:
+```php
+<?php
 
-#### Basic Example
+namespace App\Services\Placeholders\Formatters;
 
-```bash
-php artisan placeholdify:demo --example=basic
+use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
+
+/**
+ * PhoneFormatter Formatter
+ *
+ * Custom formatter for phone data transformation.
+ */
+class PhoneFormatter implements FormatterInterface
+{
+    public function getName(): string
+    {
+        return 'phone';
+    }
+
+    public function canFormat(mixed $value): bool
+    {
+        // Implement your validation logic here
+        return is_string($value) || is_numeric($value);
+    }
+
+    public function format(mixed $value, mixed ...$options): string
+    {
+        if (empty($value)) {
+            return 'N/A';
+        }
+
+        // Implement your formatting logic here
+        // You can use $options for additional parameters
+
+        return (string) $value;
+    }
+}
 ```
 
-Shows basic placeholder replacement with user data.
+## Configuration
 
-#### Invoice Example
+### Base Path Configuration
 
-```bash
-php artisan placeholdify:demo --example=invoice
-```
-
-Demonstrates invoice generation with:
-
-- Currency formatting
-- Date formatting
-- Customer context
-- Item calculations
-
-#### Letter Example
-
-```bash
-php artisan placeholdify:demo --example=letter
-```
-
-Shows formal letter generation with:
-
-- Sender/recipient contexts
-- Date formatting
-- Reference numbers
-
-#### Context Example
-
-```bash
-php artisan placeholdify:demo --example=context
-```
-
-Demonstrates context system with:
-
-- Model mapping
-- Nested relationships
-- Custom formatters
-
-### Custom Demo Data
-
-Process your own templates:
-
-```bash
-# Simple template
-php artisan placeholdify:demo \
-  --template="Welcome {name}, today is {date|date:F j, Y}" \
-  --data='{"name":"John","date":"2024-01-15"}'
-
-# Complex template with formatters
-php artisan placeholdify:demo \
-  --template="Invoice {number}: {total|currency:USD}" \
-  --data='{"number":"INV-001","total":1234.56}'
-```
-
-## Configuration Commands
-
-### Publish Configuration
-
-```bash
-php artisan vendor:publish --tag=placeholdify-config
-```
-
-Creates `config/placeholdify.php` with default settings:
+The base path for component creation can be configured in `config/placeholdify.php`:
 
 ```php
 return [
-    'delimiter' => [
-        'start' => '{',
-        'end' => '}',
-    ],
-    'fallback' => 'N/A',
-    'formatters' => [
-        // Global formatters
-    ],
-    'contexts' => [
-        // Global contexts
-    ],
+    'template_path' => 'app/Services/Placeholders',
+    // other configuration...
 ];
 ```
 
-### Publish All
+### Directory Structure
 
-```bash
-php artisan vendor:publish --provider="CleaniqueCoders\Placeholdify\PlaceholdifyServiceProvider"
-```
+The command creates components in organized subdirectories:
 
-Publishes all package assets:
-
-- Configuration file
-- Template stubs
-- Example files
-
-## Testing Commands
-
-### Running Package Tests
-
-```bash
-# Run all tests
-composer test
-
-# Run with coverage
-composer test:coverage
-
-# Run specific test
-vendor/bin/pest tests/PlaceholderHandlerTest.php
-```
-
-### Custom Test Commands
-
-You can create custom commands to test your templates:
-
-```php
-namespace App\Console\Commands;
-
-use Illuminate\Console\Command;
-use App\Services\Templates\InvoiceTemplate;
-
-class TestInvoiceTemplate extends Command
-{
-    protected $signature = 'test:invoice-template {invoice_id}';
-    protected $description = 'Test invoice template generation';
-
-    public function handle()
-    {
-        $invoiceId = $this->argument('invoice_id');
-        $invoice = Invoice::findOrFail($invoiceId);
-
-        $template = new InvoiceTemplate();
-        $templateContent = view('templates.invoice')->render();
-
-        $content = $template->generate($invoice, $templateContent);
-
-        $this->info('Generated Invoice Template:');
-        $this->line($content);
-    }
-}
-```
-
-## Helpful Tips
-
-### Tab Completion
-
-Add command aliases for faster usage:
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
-alias pt='php artisan placeholdify:make-template'
-alias pd='php artisan placeholdify:demo'
-```
-
-### IDE Integration
-
-Most IDEs support Artisan command completion. Configure your IDE to recognize the custom commands for better development experience.
-
-### Debugging
-
-Use the demo command to test formatters and contexts:
-
-```bash
-# Test custom formatter
-php artisan placeholdify:demo \
-  --template="{value|custom_formatter:param}" \
-  --data='{"value":"test"}'
-
-# Test context mapping
-php artisan placeholdify:demo \
-  --template="{user.name} - {user.email}" \
-  --data='{"user":{"name":"John","email":"john@example.com"}}'
+```text
+app/Services/Placeholders/
+├── Templates/
+│   ├── InvoiceTemplate.php
+│   └── NewsletterTemplate.php
+├── Contexts/
+│   ├── UserContext.php
+│   └── CustomerContext.php
+└── Formatters/
+    ├── PhoneFormatter.php
+    └── CurrencyFormatter.php
 ```

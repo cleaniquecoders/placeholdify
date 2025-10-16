@@ -1,0 +1,36 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\Placeholdify\Contracts\FormatterInterface;
+
+/**
+ * {{ class }} Formatter
+ *
+ * Custom formatter for {{ formatter_name }} data transformation.
+ */
+class {{ class }} implements FormatterInterface
+{
+    public function getName(): string
+    {
+        return '{{ formatter_name }}';
+    }
+
+    public function canFormat(mixed $value): bool
+    {
+        // Implement your validation logic here
+        return is_string($value) || is_numeric($value);
+    }
+
+    public function format(mixed $value, mixed ...$options): string
+    {
+        if (empty($value)) {
+            return 'N/A';
+        }
+
+        // Implement your formatting logic here
+        // You can use $options for additional parameters
+
+        return (string) $value;
+    }
+}
